@@ -1,0 +1,295 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+	<title>Demo av kollisionsdetektion mellan Mario och sköldpaddan!</title>
+
+<!--
+Author: Farhan Arshad 
+Email: farhan@gamingthinktank.com OR farhanvip@gmail.com
+-->
+      <script src="lib/jquery-1.9.1.min.js"></script>
+    <script src="lib/kinetic-v4.5.0.min.js"></script>
+	<style>
+		body {
+			margin:0px; padding:0px; /* Need to set body margin and padding to get consistency between browsers. */
+			text-align:center; /* Hack for IE5/Win */
+			}
+			
+		#container {
+			width:578px;
+			margin:0px auto; /* Right and left margin widths set to "auto" */
+			text-align:left; /* Counteract to IE5/Win Hack */
+			padding:15px;
+			border:1px dashed #333;
+			
+			}
+		#header{
+			background-color:#333; 
+			width:100%; 
+			font:Verdana, Geneva, sans-serif;
+			padding-top: 5px;
+			padding-bottom: 5px; 
+			color:#FFF;
+			}
+		#source{
+			background-color:#FFF; 
+			width:100%; 
+			font:Verdana, Geneva, sans-serif;
+			padding-top: 2px;
+			padding-bottom: 2px; 
+			
+			}
+    </style>
+  </head>
+  <body">
+  <div id="header">
+  <h2>Demo av kollision</h2>
+  </div>
+  <div id="source">
+  </div> 
+  <div id="instructions">
+   <h3>Använd knappen för att flytta Mario</h3>
+  </div>
+  <p>
+      &nbsp;</p>
+  <p>
+      &nbsp;</p>
+  <p>
+      &nbsp;</p>
+  <div id="container"></div>
+    <script defer>
+	 // Constants
+	 var Right_Arrow = 39;
+	 var Left_Arrow = 37;
+	 var Up_Arrow = 38;
+	 var Down_Arrow = 40;
+	 
+	 //Stage
+	 var stageWidth = 578;
+	 var stageHeight = 200;
+	  var stage = new Kinetic.Stage({
+        container: 'container',
+        width: stageWidth,
+        height: stageHeight,
+		
+      });
+	  
+	  //Mario
+	  var marioImg = new Image();
+	  marioImg.src =  'mario-sprite.png';
+	  
+	  //Turtle
+	  var turtleImg = new Image();
+	  turtleImg.src = 'turtle-sprite.png';
+
+	   
+	  var marioSteps = {
+        step1: [{
+          x: 12,
+          y: 1,
+          width: 26,
+          height: 56 //Why KineticJs need Actual Image Height - 1? Not Sure!!
+        }],
+        step2: [{
+          x: 42,
+          y: 1,
+          width: 26,
+          height: 56
+        }],		
+        step3: [{
+          x: 72,
+          y: 1,
+          width: 26,
+          height: 56
+        }],
+        step4: [{
+          x: 102,
+          y: 1,
+          width: 28,
+          height: 56
+        }]
+	   };
+	  var marioSprite = new Kinetic.Sprite
+	  ({
+	     x:100,
+		 y:100,
+		 image: marioImg,
+		 animation: 'step1',
+		 animations: marioSteps,
+		 framerate: 7,
+		 
+	  });
+	  
+	  
+	  var turtleObj = new Kinetic.Image
+	  ({
+		x: 300,
+		y: 105,
+		image: turtleImg,
+		width: 30,
+		height: 41
+	  });
+	  
+	  
+	  marioImg.onload = function()
+	  {
+	     stage.draw();
+	  }
+	  turtleImg.onload = function()
+	  {
+		layer.draw();
+	  }
+	  
+	  //Text layer
+	  var complexText = new Kinetic.Text({
+        x: 100,
+        y: 60,
+        text: 'Game Over Dude!\n\n Click here to restart.',
+        fontSize: 18,
+        fontFamily: 'Calibri',
+        fill: '#555',
+        width: 380,
+        padding: 20,
+        align: 'center'
+      });
+
+      var textRect = new Kinetic.Rect({
+        x: 100,
+        y: 60,
+        stroke: '#555',
+        strokeWidth: 5,
+        fill: '#ddd',
+        width: 380,
+        height: complexText.getHeight(),
+        shadowColor: 'black',
+        shadowBlur: 10,
+        shadowOffset: [10, 10],
+        shadowOpacity: 0.2,
+        cornerRadius: 10
+      });
+	  
+      complexText.on('mousedown', function(){
+			
+				reStart();
+	  });
+	  
+	  
+	  var layer = new Kinetic.Layer();
+	  var textLayer = new Kinetic.Layer();
+	  
+	  layer.add(marioSprite);
+	  layer.add(turtleObj);
+	  
+	  textLayer.add(textRect);
+	  textLayer.add(complexText);
+	  
+	  
+	  // add the layer to the stage
+	stage.add(textLayer);
+	stage.add(layer);
+	
+	textLayer.hide();
+	  
+	  
+	  marioSprite.start();
+	  marioSprite.stop();
+	  
+	  
+	  
+	  var stepCounter = 1;
+	  $( document ).ready(function() {
+		   $(document).keydown(function(e) {
+			  
+			  switch(e.keyCode) { 
+				 // User pressed "up" arrow
+				 case Up_Arrow:
+					
+				 break;
+				 // User pressed "down" arrow
+				 case Down_Arrow:
+					
+				 break;
+				 // User pressed "right" arrow
+				 case Right_Arrow:
+						
+						moveMario();
+						if(colliding(marioSprite, turtleObj))
+							gameOver();
+				 break;
+				 // User pressed "left" arrow
+				 case Left_Arrow:
+						
+				     break;
+
+               
+
+				 
+			  }
+		   });
+	
+		});
+		
+		function moveMario()
+		{
+			marioSprite.setX(marioSprite.getX()+5);
+			if(stepCounter > 4)
+				stepCounter = 1;
+			var animString = 'step'+stepCounter++;
+			marioSprite.setAnimation(animString);
+			marioSprite.start();
+			marioSprite.stop();
+		}
+		
+		function gameOver()
+		{
+			textLayer.show();
+			layer.hide();
+			textLayer.draw();
+
+			
+		}
+		
+		function reStart()
+		{
+			textLayer.hide();
+			layer.show();
+			layer.draw();
+			marioSprite.setX(100);
+			stepCounter = 1;
+			var animString = 'step'+stepCounter++;
+			marioSprite.setAnimation(animString);
+			marioSprite.start();
+			marioSprite.stop();
+		}
+		
+		function colliding(rec1, rec2)
+		{
+			var status = false;
+			var rec1Top = rec1.getY();
+			var rec1Bottom = rec1.getY() + rec1.getAnimations().step1[0].height;
+			var rec1Left = rec1.getX();
+			var rec1Right = rec1.getX() + rec1.getAnimations().step1[0].width;
+			
+			var rec2Top = rec2.getY();
+			var rec2Bottom = rec2.getY() + rec2.getHeight();
+			var rec2Left = rec2.getX();
+			var rec2Right = rec2.getX() + rec2.getWidth();
+
+			if(!(rec1Bottom < rec2Top ||
+				rec1Top > rec2Bottom ||
+				rec1Left > rec2Right ||
+				rec1Right < rec2Left))
+				
+				status = true;
+			
+			return status;
+		}
+	  
+    </script>
+
+
+  </body>
+  <p>
+      <input id="Button1" type="button" value="Flytta Mario" onclick="moveMario()" /></p>
+
+</html>
